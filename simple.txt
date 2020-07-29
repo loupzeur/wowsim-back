@@ -1,0 +1,78 @@
+
+monk="Slashfollow"
+race="pandaren"
+level="120"
+spec="windwalker"
+role="attack"
+azerite_essences="6:3/300573/35:2/300575/300576/12:4/300577/312927/5:3/312928"
+name="Slashfollow"
+
+potion="disabled"
+food="biltong"
+flask="disabled"
+augmentation="disabled"
+
+### Combo 1
+# Stygian Guise 465
+head=",id=174132,bonus_id=4823/1502/4786/6508/4775,azerite_powers=389/582/22/83/13"
+# Heart of Azeroth 513
+neck=",id=158075,bonus_id=4933/6316/4932/1650,azerite_level=90"
+# Spaulders of Aberrant Allure 465
+shoulder=",id=174135,bonus_id=4823/1502/4786/6509/4775,azerite_powers=389/582/31/14/13"
+# Ashjra'kamas, Shroud of Resolve 488
+back=",id=169223,bonus_id=6281/1472"
+# Tortured Fleshbeast Cuirass 475
+chest=",id=174136,bonus_id=4823/1502/4786/6507/4775,azerite_powers=388/389/31/218/13"
+# Wristguards of the Sandswimmer 475
+wrist=",id=159332,bonus_id=6536/6578/6579/6553/6513/1647/4786"
+# Underrot Grotto Tenders 475
+hands=",id=159344,bonus_id=6536/6578/6515/1647/4786/6479/6470"
+# Belt of Braided Vessels 460
+waist=",id=174142,bonus_id=4823/6516/6515/1502/4786"
+# Seawalker's Pantaloons 475
+legs=",id=159322,bonus_id=6536/6578/6579/6558/6513/1647/4786"
+# Machinist's Treasured Treads 470
+feet=",id=168975,bonus_id=6530/6578/6513/1527/4786/6516"
+# Murky Cerulean Signet 460
+finger1=",id=158318,bonus_id=6528/40/6516/6513/1632/4786"
+# Seal of the City Watch 475
+finger2=",id=162542,bonus_id=6536/6578/6579/6540/6515/1647/4786"
+# Lustrous Golden Plumage 465
+trinket1=",id=159617,gem_id=168642,bonus_id=6536/4802/6513/1637/4786"
+# Kul Tiran Cannonball Runner 475
+trinket2=",id=159628,bonus_id=6536/6515/1647/4786"
+# Bile-Stained Crawg Tusks 460
+main_hand=",id=159653,enchant_id=5965,bonus_id=6532/43/6516/6515/1632/4786"
+# Warmace of Waking Nightmares 460
+off_hand=",id=172186,enchant_id=5962,bonus_id=4823/6516/6515/1502/4786"
+talents="2222112"
+azerite_essences="6:3/5:3/12:4/35:2/300573/300575/300576/300577/312927/312928"
+
+# Simulation Configs
+iterations="100000"
+fight_style="Patchwerk"
+desired_targets="1"
+max_time="300"
+calculate_scale_factors="0"
+scale_only="strength,intellect,agility,crit,mastery,vers,haste,weapon_dps,weapon_offhand_dps,stamina"
+override.bloodlust="0"
+override.arcane_intellect="0"
+override.power_word_fortitude="0"
+override.battle_shout="0"
+override.mystic_touch="0"
+override.chaos_brand="0"
+override.bleeding="0"
+bfa.zuldazar="0"
+bfa.nazjatar="0"
+bfa.worldvein_allies="0"
+bfa.loyal_to_the_end_allies="0"
+bfa.covenant_chance="1"
+bfa.undulating_tides_lockout_timer="5"
+bfa.undulating_tides_lockout_chance="0"
+bfa.nyalotha="1"
+bfa.void_ritual_increased_chance_active="0"
+bfa.symbiotic_presence_interval="22"
+report_details="0"
+single_actor_batch="1"
+optimize_expressions="1"
+target_error="0.05"
