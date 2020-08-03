@@ -22,6 +22,7 @@ import (
 func web() {
 	log.Println("Running web server")
 	r := mux.NewRouter()
+	r.Use(setupResponseHandler)
 	r.Use(cacheMiddleware)
 
 	r.HandleFunc("/api/sim", runSim)
@@ -36,7 +37,6 @@ func web() {
 }
 
 func webCharacter(w http.ResponseWriter, req *http.Request) {
-	setupResponse(&w, req)
 	vars := mux.Vars(req)
 	ret, _ := json.Marshal(wow.GetCharacterEquipment(vars["region"], vars["realm"], vars["character"]))
 	writeCache(req.URL.Path, ret)
@@ -44,7 +44,6 @@ func webCharacter(w http.ResponseWriter, req *http.Request) {
 	w.Write(ret)
 }
 func webCharacterAppearance(w http.ResponseWriter, req *http.Request) {
-	setupResponse(&w, req)
 	vars := mux.Vars(req)
 	ret, _ := json.Marshal(wow.GetCharacterAppearance(vars["region"], vars["realm"], vars["character"]))
 	writeCache(req.URL.Path, ret)
@@ -52,7 +51,6 @@ func webCharacterAppearance(w http.ResponseWriter, req *http.Request) {
 	w.Write(ret)
 }
 func webCharacterMedia(w http.ResponseWriter, req *http.Request) {
-	setupResponse(&w, req)
 	vars := mux.Vars(req)
 	ret, _ := json.Marshal(wow.GetCharacterMedia(vars["region"], vars["realm"], vars["character"]))
 	writeCache(req.URL.Path, ret)
@@ -60,7 +58,6 @@ func webCharacterMedia(w http.ResponseWriter, req *http.Request) {
 	w.Write(ret)
 }
 func webItem(w http.ResponseWriter, req *http.Request) {
-	setupResponse(&w, req)
 	vars := mux.Vars(req)
 	ret, _ := json.Marshal(wow.GetItem(vars["region"], vars["id"]))
 	writeCache(req.URL.Path, ret)
@@ -68,7 +65,6 @@ func webItem(w http.ResponseWriter, req *http.Request) {
 	w.Write(ret)
 }
 func webItemMedia(w http.ResponseWriter, req *http.Request) {
-	setupResponse(&w, req)
 	vars := mux.Vars(req)
 	ret, _ := json.Marshal(wow.GetItemMedia(vars["region"], vars["id"]))
 	writeCache(req.URL.Path, ret)
@@ -87,7 +83,6 @@ var upgrader = websocket.Upgrader{
 } // use default options
 
 func wsSim(w http.ResponseWriter, r *http.Request) {
-	setupResponse(&w, r)
 	c, err := upgrader.Upgrade(w, r, nil)
 	c.SetReadDeadline(time.Time{})
 	c.SetWriteDeadline(time.Time{})
@@ -116,7 +111,6 @@ func wsSim(w http.ResponseWriter, r *http.Request) {
 }
 
 func runSim(w http.ResponseWriter, req *http.Request) {
-	setupResponse(&w, req)
 	switch req.Method {
 	case "POST":
 		if err := req.ParseForm(); err != nil {
@@ -161,16 +155,18 @@ func runSim(w http.ResponseWriter, req *http.Request) {
 }
 
 //----------- utils
-func setupResponse(w *http.ResponseWriter, req *http.Request) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+func setupResponseHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		next.ServeHTTP(w, req)
+	})
 }
 
 //To cache some request and avoid requesting again
 func cacheMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		setupResponse(&w, r)
 		cachedFile := "./cache" + r.URL.Path
 		if strings.HasPrefix(r.URL.Path, "/api/wow") && fileExists(cachedFile) {
 			w.Header().Set("Content-Type", "application/json")
