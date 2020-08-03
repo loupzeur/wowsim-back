@@ -79,6 +79,10 @@ type ItemKey struct {
 	ID  int               `json:"id,omitempty"`
 	Key map[string]string `json:"key,omitempty"`
 }
+type ItemMedia struct {
+	ID     int         `json:"id,omitempty"`
+	Assets interface{} `json:"assets,omitempty"`
+}
 
 type ItemClass struct {
 	//Key  string            `json:"key,omitempty"`

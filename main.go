@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -20,14 +22,16 @@ import (
 func web() {
 	log.Println("Running web server")
 	r := mux.NewRouter()
+	r.Use(cacheMiddleware)
+
 	r.HandleFunc("/api/sim", runSim)
 	r.HandleFunc("/api/wssim", wsSim)
 	r.HandleFunc("/api/wow/character/{region:[a-z]+}/{realm:[a-z]+}/{character:[a-z]+}", webCharacter)
-
 	r.HandleFunc("/api/wow/character/media/{region:[a-z]+}/{realm:[a-z]+}/{character:[a-z]+}", webCharacterMedia)
 	r.HandleFunc("/api/wow/character/appearance/{region:[a-z]+}/{realm:[a-z]+}/{character:[a-z]+}", webCharacterAppearance)
 
 	r.HandleFunc("/api/wow/item/{region:[a-z]+}/{id:[0-9]+}", webItem)
+	r.HandleFunc("/api/wow/item/media/{region:[a-z]+}/{id:[0-9]+}", webItemMedia)
 	http.ListenAndServe(":8080", r)
 }
 
@@ -35,6 +39,7 @@ func webCharacter(w http.ResponseWriter, req *http.Request) {
 	setupResponse(&w, req)
 	vars := mux.Vars(req)
 	ret, _ := json.Marshal(wow.GetCharacterEquipment(vars["region"], vars["realm"], vars["character"]))
+	writeCache(req.URL.Path, ret)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(ret)
 }
@@ -42,6 +47,7 @@ func webCharacterAppearance(w http.ResponseWriter, req *http.Request) {
 	setupResponse(&w, req)
 	vars := mux.Vars(req)
 	ret, _ := json.Marshal(wow.GetCharacterAppearance(vars["region"], vars["realm"], vars["character"]))
+	writeCache(req.URL.Path, ret)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(ret)
 }
@@ -49,6 +55,7 @@ func webCharacterMedia(w http.ResponseWriter, req *http.Request) {
 	setupResponse(&w, req)
 	vars := mux.Vars(req)
 	ret, _ := json.Marshal(wow.GetCharacterMedia(vars["region"], vars["realm"], vars["character"]))
+	writeCache(req.URL.Path, ret)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(ret)
 }
@@ -56,6 +63,15 @@ func webItem(w http.ResponseWriter, req *http.Request) {
 	setupResponse(&w, req)
 	vars := mux.Vars(req)
 	ret, _ := json.Marshal(wow.GetItem(vars["region"], vars["id"]))
+	writeCache(req.URL.Path, ret)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(ret)
+}
+func webItemMedia(w http.ResponseWriter, req *http.Request) {
+	setupResponse(&w, req)
+	vars := mux.Vars(req)
+	ret, _ := json.Marshal(wow.GetItemMedia(vars["region"], vars["id"]))
+	writeCache(req.URL.Path, ret)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(ret)
 }
@@ -149,6 +165,52 @@ func setupResponse(w *http.ResponseWriter, req *http.Request) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
+//To cache some request and avoid requesting again
+func cacheMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		setupResponse(&w, r)
+		cachedFile := "./cache" + r.URL.Path
+		if strings.HasPrefix(r.URL.Path, "/api/wow") && fileExists(cachedFile) {
+			w.Header().Set("Content-Type", "application/json")
+			http.ServeFile(w, r, cachedFile)
+
+			//file, err := os.Open(cachedFile)
+			//if err != nil {
+			//	log.Println("Problem with file : ", err.Error())
+			//}
+			//defer file.Close()
+			//w.Header().Set("Content-Type", "application/json")
+			//l, err := io.Copy(w, file)
+			//if err != nil {
+			//	log.Println("Problem writting response : ", err.Error())
+			//}
+			//log.Println("Hit cache : ", cachedFile, "Wrote : ", l)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func writeCache(path string, response []byte) {
+	elems := strings.Split(path, "/")
+	path = "./cache" + strings.Join(elems[:len(elems)-1], "/")
+	file := path + "/" + elems[len(elems)-1]
+
+	log.Printf("Creating path : %s and file %s\n", path, file)
+
+	os.MkdirAll(path, os.ModePerm)
+	ioutil.WriteFile(file, response, os.ModePerm)
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
 
 func main() {

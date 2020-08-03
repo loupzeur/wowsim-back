@@ -58,6 +58,7 @@ const (
 	pathCharacterAppearance = "/profile/wow/character/%s/%s/appearance?namespace=profile-%s"      //&locale=en_US
 	pathCharacterMedia      = "/profile/wow/character/%s/%s/character-media?namespace=profile-%s" //&locale=en_US
 	pathItemID              = "/data/wow/item/%s?namespace=static-%s"                             //&locale=en_US
+	pathMediaItemID         = "/data/wow/media/item/%s?namespace=static-%s"                       //&locale=en_US
 )
 
 var clientID string
@@ -148,6 +149,14 @@ func GetItem(region, id string) models.Item {
 	return ret
 }
 
+//GetItemMedia return an item by it's is for a region
+func GetItemMedia(region, id string) models.ItemMedia {
+	url := fmt.Sprintf(pathMediaItemID, id, region)
+	ret := models.ItemMedia{}
+	getAPIResponse(&ret, url, region)
+	return ret
+}
+
 //GetCharacterAppearance return /appearance
 func GetCharacterAppearance(region, realm, name string) models.CharacterAppearance {
 	url := fmt.Sprintf(pathCharacterAppearance, realm, name, region)
@@ -171,7 +180,7 @@ func getAPIResponse(item interface{}, url, region string) {
 		log.Printf("%s\n", err.Error())
 	}
 
-	log.Println(url)
+	log.Println("Accessing API : ", url)
 
 	client := &http.Client{}
 	req, nil := http.NewRequest("GET", fmt.Sprintf("https://%s%s", baseServer, url), nil)
